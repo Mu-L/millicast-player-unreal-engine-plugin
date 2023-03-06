@@ -207,6 +207,8 @@ namespace Millicast::Player
 		mutable FCriticalSection CriticalSection;
 
 		FMillicastAudioParameters AudioParameters;
+
+		int64_t NextDebugLog = 0;
 	};
 
 }
