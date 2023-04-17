@@ -47,4 +47,6 @@ private:
 	USoundWaveProcedural* SoundStreaming;
 
 	FMillicastAudioParameters AudioParameters;
+
+	int64_t NextDebugLog = 0;
 };

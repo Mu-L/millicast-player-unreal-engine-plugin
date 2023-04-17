@@ -7,6 +7,8 @@
 
 #include "Components/AudioComponent.h"
 
+#include "rtc_base/time_utils.h"
+
 FMillicastAudioParameters UMillicastAudioComponent::GetAudioParameters() const
 {
 	return AudioParameters;
