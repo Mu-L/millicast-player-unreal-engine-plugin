@@ -111,10 +111,7 @@ FWebRTCPeerConnection::~FWebRTCPeerConnection() noexcept
 	PeerConnection = nullptr;
 
 	UE_LOG(LogMillicastPlayer, Verbose, TEXT("Stop audio device module"));
-	WorkingThread->Invoke<void>(RTC_FROM_HERE, [this]() {
-		AudioDeviceModule->StopPlayout();
-		AudioDeviceModule->Terminate();
-	});
+	WorkingThread->Invoke<void>(RTC_FROM_HERE, [this]() { AudioDeviceModule->Terminate(); });
 
 	UE_LOG(LogMillicastPlayer, Verbose, TEXT("Destroy peerconnectino factory, count %d"), RefCounter.Load());
 	PeerConnectionFactory = nullptr;
