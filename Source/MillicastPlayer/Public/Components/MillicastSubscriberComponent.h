@@ -219,10 +219,6 @@ public:
 	/** Called when a audio track is received */
 	UPROPERTY(BlueprintAssignable, Category = "Components|Activation")
 	FMillicastSubscriberComponentAudioTrack OnAudioTrack;
-
-	/** Called when metadata gave been extracted from the video frame */
-	UPROPERTY(BlueprintAssignable, Category = "Components|Activation")
-	FMillicastSubscriberComponentFrameMetadata OnFrameMetadata;
 	
 private:
 	void BeginPlay() override;
