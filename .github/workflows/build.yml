@@ -1,0 +1,50 @@
+name: Build Unreal Plugin
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  CPP_SDK_TAG: "2.4.2"
+  CPP_SDK_DESTINATION: "Millicast"
+  CPP_SDK_URL: "https://github.com/DolbyIO/comms-sdk-cpp/releases/download"
+  UNREAL_PLUGIN_OUTPUT: "Build/Millicast"
+  RETENTION: 7
+
+jobs:
+  build-windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ["4.27", "5.0", "5.1"]
+    runs-on: ["self-hosted", "X64", "Windows"]
+    env:
+      BUILD_PLATFORM: 'windows64'
+    steps:
+      - name: Code checkout
+        uses: actions/checkout@v3
+      - name: Download C++ SDK release asset
+        id: download_cpp
+        uses: ./.github/actions/download_cpp/powershell
+        with:
+          url: ${{ env.CPP_SDK_URL }}
+          tag: ${{ env.CPP_SDK_TAG }}
+          asset_name: "cppsdk-${{ env.CPP_SDK_TAG }}-${{ env.BUILD_PLATFORM }}.zip"
+      - name: Run Build
+        run: |
+          Write-Output "UE_${{ matrix.version }}"
+          $UERunUAT = "C:\\Program Files\\Epic Games\\UE_${{ matrix.version }}\\Engine\\Build\\BatchFiles\\RunUAT.bat"
+          & $UERunUAT BuildPlugin -Rocket -Plugin="$(pwd)\\DolbyIO\\DolbyIO.uplugin" -TargetPlatforms=Win64 -Package="$(pwd)\\Build\\DolbyIO" -StrictIncludes -VS2019 -NoTurnKeyVariables
+      # - name: Sign DolbyIO Unreal Plugin
+      #   env:
+      #     WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+      #   uses: ./.github/actions/sign/win
+      #   with:
+      #     path: ${{ env.UNREAL_PLUGIN_OUTPUT }}
+      #     platform: 'windows'
+      - name: Archive DolbyIO Plugin
+        uses: actions/upload-artifact@v3
+        with:
+          name: DolbyIO_UnrealPlugin_${{ matrix.version }}_${{ env.BUILD_PLATFORM }}
+          path: ${{ env.UNREAL_PLUGIN_OUTPUT }}
+          retention-days: ${{ env.RETENTION }}
