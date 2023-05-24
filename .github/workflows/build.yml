@@ -37,7 +37,7 @@ jobs:
       #     ref: dev
 
       - name: Trigger Workflow
-        if: steps.branch-check.outputs.branchExists == "true"
+        if: steps.branch-check.outputs.branchExists == 'true'
         run: |
           echo "branch exists"
 
