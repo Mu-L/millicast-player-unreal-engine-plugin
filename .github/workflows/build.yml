@@ -1,102 +1,50 @@
-name: Build Unreal Plugin
+name: Check Branch and Trigger Workflow
 
 on:
   push:
-  workflow_dispatch:
-
-env:
-  CPP_SDK_TAG: "2.4.2"
-  CPP_SDK_DESTINATION: "Millicast"
-  CPP_SDK_URL: "https://github.com/DolbyIO/comms-sdk-cpp/releases/download"
-  UNREAL_PLUGIN_OUTPUT: "Build/Millicast"
-  RETENTION: 7
 
 jobs:
-  build-linux:
-    strategy:
-      fail-fast: false
-      matrix:
-        version: ["4.27", "5.0", "5.1"]
-    runs-on: ["self-hosted", "X64", "Linux"]
-    env:
-      BUILD_PLATFORM: 'linux64'
-    steps:
-      # - name: Code checkout
-      #   uses: actions/checkout@v3
-      # - name: Download C++ SDK release asset
-      #   uses: ./.github/actions/download_cpp/bash
-      #   with:
-      #     url: ${{ env.CPP_SDK_URL }}
-      #     tag: ${{ env.CPP_SDK_TAG }}
-      #     asset_name: "cppsdk-${{ env.CPP_SDK_TAG }}-${{ env.BUILD_PLATFORM }}.zip"
-      # - name: Remove symlinks from cpp sdk libs
-      #   env:
-      #     LIB_PATH_ARM: "${{ github.workspace }}/${{ env.CPP_SDK_DESTINATION }}/sdk-release-arm/lib"
-      #     LIB_PATH_X86: "${{ github.workspace }}/${{ env.CPP_SDK_DESTINATION }}/sdk-release-x86/lib"
-      #   run: |
-      #     echo "Removing symlinks from ${LIB_PATH_ARM}"
-      #     rm ${LIB_PATH_ARM}/libav*.dylib
-      #     echo "Removing symlinks from ${LIB_PATH_X86}"
-      #     rm ${LIB_PATH_X86}/libav*.dylib
-      # - name: Run Build
-      #   run: |
-      #     /Users/Shared/Epic\ Games/UE_${{ matrix.version }}/Engine/Build/BatchFiles/RunUAT.sh BuildPlugin \
-      #     -Rocket \
-      #     -Plugin=$(pwd)/DolbyIO/DolbyIO.uplugin \
-      #     -TargetPlatforms=Mac \
-      #     -Package=$(pwd)/${{ env.UNREAL_PLUGIN_OUTPUT }} \
-      #     -StrictIncludes
-      # - name: Sign DolbyIO Unreal Plugin
-      #   env:
-      #     DOLBYIO_KEYCHAIN_PASSWORD: ${{ secrets.VOXEET_KEYCHAIN_PASSWORD }}
-      #   uses: ./.github/actions/sign/mac
-      #   with:
-      #     path: ${{ env.UNREAL_PLUGIN_OUTPUT }}
-      #     platform: 'macos'
-      # - name: Archive DolbyIO Unreal Plugin
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: DolbyIO_UnrealPlugin_${{ matrix.version }}_${{ env.BUILD_PLATFORM }}
-      #     path: ${{ env.UNREAL_PLUGIN_OUTPUT }}
-      #     retention-days: ${{ env.RETENTION }}
-      - name: Run test
-        run: |
-          echo "test"
+  check-branch:
+    runs-on: ubuntu-latest
 
-
-  build-windows:
-    strategy:
-      fail-fast: false
-      matrix:
-        version: ["4.27", "5.0", "5.1"]
-    runs-on: ["self-hosted", "X64", "Windows"]
-    env:
-      BUILD_PLATFORM: 'windows64'
     steps:
-      - name: Code checkout
-        uses: actions/checkout@v3
-      - name: Download C++ SDK release asset
-        id: download_cpp
-        uses: ./.github/actions/download_cpp/powershell
+      - name: Check if branch exists
+        id: branch-check
+        uses: actions/github-script@v5
         with:
-          url: ${{ env.CPP_SDK_URL }}
-          tag: ${{ env.CPP_SDK_TAG }}
-          asset_name: "cppsdk-${{ env.CPP_SDK_TAG }}-${{ env.BUILD_PLATFORM }}.zip"
-      - name: Run Build
+          script: |
+            const branchExists = await github.repos.getBranch({
+              owner: 'millicast',
+              repo: 'millicast-player-unreal-engine-plugin',
+              branch: github.context.ref.replace('refs/heads/', ''),
+            });
+            return branchExists.status === 200;
+
+      # - name: Trigger Workflow
+      #   if: steps.branch-check.outputs.branchExists
+      #   uses: peter-evans/repository-dispatch@v1
+      #   with:
+      #     token: ${{ secrets.TOKEN }}
+      #     repository: other-repo-owner/other-repo
+      #     event-type: workflow-name
+      #     ref: ${{ github.ref }}
+
+      # - name: Trigger Workflow on Dev Branch
+      #   if: steps.branch-check.outputs.branchExists == 'false'
+      #   uses: peter-evans/repository-dispatch@v1
+      #   with:
+      #     token: ${{ secrets.TOKEN }}
+      #     repository: another-repo-owner/another-repo
+      #     event-type: workflow-name
+      #     ref: dev
+
+      - name: Trigger Workflow
+        if: steps.branch-check.outputs.branchExists
         run: |
-          Write-Output "UE_${{ matrix.version }}"
-          $UERunUAT = "C:\\Program Files\\Epic Games\\UE_${{ matrix.version }}\\Engine\\Build\\BatchFiles\\RunUAT.bat"
-          & $UERunUAT BuildPlugin -Rocket -Plugin="$(pwd)\MillicastPlayer.uplugin" -TargetPlatforms=Win64 -Package="$(pwd)\\Build\\Millicast" -StrictIncludes -VS2019 -NoTurnKeyVariables
-      - name: Sign DolbyIO Unreal Plugin
-        env:
-          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
-        uses: ./.github/actions/sign/win
-        with:
-          path: ${{ env.UNREAL_PLUGIN_OUTPUT }}
-          platform: 'windows'
-      - name: Archive DolbyIO Plugin
-        uses: actions/upload-artifact@v3
-        with:
-          name: DolbyIO_UnrealPlugin_${{ matrix.version }}_${{ env.BUILD_PLATFORM }}
-          path: ${{ env.UNREAL_PLUGIN_OUTPUT }}
-          retention-days: ${{ env.RETENTION }}
+          echo "branch exists"
+
+      - name: Trigger Workflow on Dev Branch
+        if: steps.branch-check.outputs.branchExists == 'false'
+        run: |
+          echo "branch doesn't exists"
+
