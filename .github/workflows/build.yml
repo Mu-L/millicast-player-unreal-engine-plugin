@@ -12,15 +12,11 @@ jobs:
     steps:
       - name: Check if branch exists
         id: branch-check
-        uses: actions/github-script@v5
-        with:
-          script: |
-            const branchExists = await github.rest.repos.getBranch({
-              owner: 'millicast',
-              repo: 'millicast-player-unreal-engine-plugin',
-              branch: github.context.ref.replace('refs/heads/', ''),
-            });
-            return branchExists.status === 200;
+        run: |
+          exists=$(curl -s -o /dev/null -w "%{http_code}" -X GET \
+            "https://api.github.com/repos/millicast/millicast-player-unreal-engine-plugin/git/refs/heads/${{ github.ref }}" \
+          )
+          echo "::set-output name=branchExists::$(if [ $exists -eq 200 ]; then echo true; else echo false; fi)"
 
       # - name: Trigger Workflow
       #   if: steps.branch-check.outputs.branchExists
@@ -41,7 +37,7 @@ jobs:
       #     ref: dev
 
       - name: Trigger Workflow
-        if: steps.branch-check.outputs.branchExists
+        if: steps.branch-check.outputs.branchExists == "true"
         run: |
           echo "branch exists"
 
