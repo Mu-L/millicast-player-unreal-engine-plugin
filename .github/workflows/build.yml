@@ -4,7 +4,9 @@ on:
   push:
     branches:
       - '*'
-
+          # exists=$(curl -s -o /dev/null -w "%{http_code}" -X GET \
+          #   "https://api.github.com/repos/millicast/millicast-player-unreal-engine-plugin/git/${{ github.ref }}" \
+          # )
 jobs:
   check-branch:
     runs-on: ubuntu-latest
@@ -13,11 +15,12 @@ jobs:
       - name: Check if branch exists
         id: branch-check
         run: |
-          echo "${{ github.ref }}"
+          echo "branch name: ${{ github.ref }}"
+
           exists=$(curl -s -o /dev/null -w "%{http_code}" -X GET \
-            "https://api.github.com/repos/millicast/millicast-player-unreal-engine-plugin/git/${{ github.ref }}" \
+            "https://api.github.com/repos/millicast/millicast-player-unreal-engine-plugin/git/refs/heads/TEST-1234" \
           )
-          echo "$exists"
+          echo "http response(200 means branch exists in example repo): $exists"
           echo "branch_exists=$(if [ $exists -eq 200 ]; then echo true; else echo false; fi)" >> $GITHUB_OUTPUT 
 
       # - name: Trigger Workflow
