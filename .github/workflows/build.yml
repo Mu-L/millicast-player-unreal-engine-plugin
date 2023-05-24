@@ -15,7 +15,7 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
-            const branchExists = await github.repos.getBranch({
+            const branchExists = await github.rest.repos.getBranch({
               owner: 'millicast',
               repo: 'millicast-player-unreal-engine-plugin',
               branch: github.context.ref.replace('refs/heads/', ''),
