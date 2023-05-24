@@ -18,7 +18,7 @@ jobs:
             "https://api.github.com/repos/millicast/millicast-player-unreal-engine-plugin/git/${{ github.ref }}" \
           )
           echo "$exists"
-          echo "::set-output name=branchExists::$(if [ $exists -eq 200 ]; then echo true; else echo false; fi)"
+          echo "$(if [ $exists -eq 200 ]; then echo true; else echo false; fi)" >> $GITHUB_OUTPUT 
 
       # - name: Trigger Workflow
       #   if: steps.branch-check.outputs.branchExists
