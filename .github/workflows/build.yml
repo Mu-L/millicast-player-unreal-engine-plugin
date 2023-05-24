@@ -16,38 +16,26 @@ jobs:
         id: branch-check
         run: |
           echo "branch name: ${{ github.ref }}"
-
           exists=$(curl -s -o /dev/null -w "%{http_code}" -X GET \
-            "https://api.github.com/repos/millicast/millicast-player-unreal-engine-plugin/git/refs/heads/TEST-1234" \
+            "https://api.github.com/repos/millicast/millicast-player-unreal-engine-plugin/git/${{ github.ref }}" \
           )
-          echo "http response(200 means branch exists in example repo): $exists"
+          echo "http response(200 - branch exists, 404 - branch doesn't exist): $exists"
           echo "branch_exists=$(if [ $exists -eq 200 ]; then echo true; else echo false; fi)" >> $GITHUB_OUTPUT 
-
-      # - name: Trigger Workflow
-      #   if: steps.branch-check.outputs.branchExists
-      #   uses: peter-evans/repository-dispatch@v1
-      #   with:
-      #     token: ${{ secrets.TOKEN }}
-      #     repository: other-repo-owner/other-repo
-      #     event-type: workflow-name
-      #     ref: ${{ github.ref }}
-
-      # - name: Trigger Workflow on Dev Branch
-      #   if: steps.branch-check.outputs.branchExists == 'false'
-      #   uses: peter-evans/repository-dispatch@v1
-      #   with:
-      #     token: ${{ secrets.TOKEN }}
-      #     repository: another-repo-owner/another-repo
-      #     event-type: workflow-name
-      #     ref: dev
 
       - name: Trigger Workflow
         if: steps.branch-check.outputs.branch_exists == 'true'
-        run: |
-          echo "branch exists"
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          # token: ${{ secrets.TOKEN }}
+          repository: millicast/millicast-player-ue5-example
+          event-type: Build_Unreal_Plugin_Example
+          ref: ${{ github.ref }}
 
       - name: Trigger Workflow on Dev Branch
         if: steps.branch-check.outputs.branch_exists == 'false'
-        run: |
-          echo "branch doesn't exists"
+        with:
+          # token: ${{ secrets.TOKEN }}
+          repository: millicast/millicast-player-ue5-example
+          event-type: Build_Unreal_Plugin_Example
+          ref: dev
 
