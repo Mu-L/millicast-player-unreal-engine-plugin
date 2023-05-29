@@ -20,21 +20,30 @@ jobs:
           echo "http response(200 - branch exists, 404 - branch doesn't exist): $exists"
           echo "branch_exists=$(if [ $exists -eq 200 ]; then echo true; else echo false; fi)" >> $GITHUB_OUTPUT 
 
+
+      - name: generate GH access token
+        run: |
+          export GH_APP_RELEASECREATOR_TOKEN_PYTHON_SCRIPT=$(gh_releasecreator_generate_at_script)
+          export GH_APP_RELEASECREATOR_PRIV_KEY=$(gh_releasecreator_app_priv_key_1)
+          export GH_APP_ID=$(gh_releasecreator_app_id)
+          export GH_APP_INSTALLATION_ID=${{ parameters.GH_APP_INSTALLATION_ID }}
+          python3 -m pip install jwt requests
+          echo ${GH_APP_RELEASECREATOR_TOKEN_PYTHON_SCRIPT} | base64 -d > ${{ vars.GITHUB_WORKSPACE }}/generate_gh_app_installation_token.py
+          echo ${GH_APP_RELEASECREATOR_PRIV_KEY} | base64 -d > ${{ vars.GITHUB_WORKSPACE }}/gh_app_priv_key.pem
+          export PEM_FILE=${{ vars.GITHUB_WORKSPACE }}/gh_app_priv_key.pem
+          export GH_ACCESS_TOKEN_1H_EXPIRATION=$( python3 ${{ vars.GITHUB_WORKSPACE }}/generate_gh_app_installation_token.py )
+          rm ${{ vars.GITHUB_WORKSPACE }}/gh_app_priv_key.pem ${{ vars.GITHUB_WORKSPACE }}/generate_gh_app_installation_token.py
+          echo "##vso[task.setvariable variable=GH_ACCESS_TOKEN_1H_EXPIRATION;issecret=true;isoutput=true]${GH_ACCESS_TOKEN_1H_EXPIRATION}"
+        
+
       - name: Trigger Workflow
         if: steps.branch-check.outputs.branch_exists == 'true'
-        uses: peter-evans/repository-dispatch@v1
-        with:
-          # token: ${{ secrets.TOKEN }}
-          repository: millicast/millicast-player-ue5-example
-          event-type: Build_Unreal_Plugin_Example
-          ref: ${{ github.ref }}
+        run: |
+          echo "trigger Workflow"
+
 
       - name: Trigger Workflow on Dev Branch
         if: steps.branch-check.outputs.branch_exists == 'false'
-        uses: peter-evans/repository-dispatch@v1
-        with:
-          # token: ${{ secrets.TOKEN }}
-          repository: millicast/millicast-player-ue5-example
-          event-type: Build_Unreal_Plugin_Example
-          ref: dev
+        run: |
+          echo "trigger default workflow"
 
