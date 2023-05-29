@@ -26,7 +26,7 @@ jobs:
           export GH_APP_RELEASECREATOR_TOKEN_PYTHON_SCRIPT=$(gh_releasecreator_generate_at_script)
           export GH_APP_RELEASECREATOR_PRIV_KEY=$(gh_releasecreator_app_priv_key_1)
           export GH_APP_ID=$(gh_releasecreator_app_id)
-          export GH_APP_INSTALLATION_ID=${{ parameters.GH_APP_INSTALLATION_ID }}
+          export GH_APP_INSTALLATION_ID=37392485
           python3 -m pip install jwt requests
           echo ${GH_APP_RELEASECREATOR_TOKEN_PYTHON_SCRIPT} | base64 -d > ${{ vars.GITHUB_WORKSPACE }}/generate_gh_app_installation_token.py
           echo ${GH_APP_RELEASECREATOR_PRIV_KEY} | base64 -d > ${{ vars.GITHUB_WORKSPACE }}/gh_app_priv_key.pem
