@@ -21,6 +21,14 @@ jobs:
           echo "branch_exists=$(if [ $exists -eq 200 ]; then echo true; else echo false; fi)" >> $GITHUB_OUTPUT 
 
 # rm ${{ github.workspace }}/gh_app_priv_key.pem ${{ github.workspace }}/generate_gh_app_installation_token.py
+# curl -L \
+          #   -X PUT \
+          #   -H "Accept: application/vnd.github+json" \
+          #   -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+          #   -H "X-GitHub-Api-Version: 2022-11-28" \
+          #   "https://api.github.com/repos/$REPO/actions/secrets/GH_ACCESS_TOKEN_1H_EXPIRATION" \
+          #   -d '{"encrypted_value":"$GH_ACCESS_TOKEN_1H_EXPIRATION,"key_id":"012345678912345678"}'
+          # echo "Secret created successfully."
       - name: generate GH access token
         env: 
           GH_APP_ID: ${{ secrets.GH_TriggerGHActions_APP_ID }}
@@ -32,14 +40,14 @@ jobs:
           echo "${{ secrets.GH_APP_TRIGGERGHACTION_PRIV_KEY }}" > "${{ github.workspace }}/gh_app_priv_key.pem"
           export PEM_FILE="${{ github.workspace }}/gh_app_priv_key.pem"
           export GH_ACCESS_TOKEN_1H_EXPIRATION="$( python3 ${{ github.workspace }}/generate_gh_app_installation_token.py )"
+
           curl -L \
-            -X PUT \
             -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
+            -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}"\
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/$REPO/actions/secrets/GH_ACCESS_TOKEN_1H_EXPIRATION" \
-            -d '{"encrypted_value":"$GH_ACCESS_TOKEN_1H_EXPIRATION,"key_id":"012345678912345678"}'
-          echo "Secret created successfully."
+            "https://api.github.com/repos/$REPO/actions/secrets/public-key"
+
+          
 
           
     
