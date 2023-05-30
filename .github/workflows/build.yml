@@ -32,13 +32,11 @@ jobs:
           echo "${{ secrets.GH_APP_TRIGGERGHACTION_PRIV_KEY }}" > "${{ github.workspace }}/gh_app_priv_key.pem"
           export PEM_FILE="${{ github.workspace }}/gh_app_priv_key.pem"
           export GH_ACCESS_TOKEN_1H_EXPIRATION="$( python3 ${{ github.workspace }}/generate_gh_app_installation_token.py )"
-          echo ${GH_ACCESS_TOKEN_1H_EXPIRATION}
-          echo ${REPO}
           curl -X PUT \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Authorization: Bearer ${{ secrets.PERSONAL_ACCESS_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${REPO}/actions/secrets/GH_ACCESS_TOKEN_1H_EXPIRATION" \
-            -d "{\"encrypted_value\":\"$(echo -n "${GH_ACCESS_TOKEN_1H_EXPIRATION}" | base64)\"}"
+            "https://api.github.com/repos/$REPO/actions/secrets/GH_ACCESS_TOKEN_1H_EXPIRATION" \
+            -d "{\"encrypted_value\":\"$(echo -n "$GH_ACCESS_TOKEN_1H_EXPIRATION" | base64)\"}"
           echo "Secret created successfully."
 
           
