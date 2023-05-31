@@ -51,7 +51,6 @@ jobs:
         if: steps.branch-check.outputs.branch_exists == 'true'
         run: |
           echo "trigger Workflow"
-          cat ${{ github.workspace }}/gh_1h_access_token
           curl -L \
           -X POST \
           -H "Accept: application/vnd.github+json" \
